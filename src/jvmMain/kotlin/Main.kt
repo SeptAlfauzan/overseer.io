@@ -4,11 +4,7 @@ import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Phone
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -16,29 +12,33 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import core.utils.SocketHelper
 import core.widgets.CardInfo
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
-import java.io.File
 import java.io.InputStreamReader
+import java.net.ServerSocket
+import java.util.logging.SocketHandler
 
 @Composable
 @Preview
 fun App() {
     var openingPyScript by remember { mutableStateOf(false) }
-
-    val pythonScriptPath = "D:\\codings\\python\\test\\main.py"// TODO: this code should be depend on your python program path 
+    val socketHelper = SocketHelper(12345)
+    val pythonScriptPath =
+        "D:\\codings\\python\\test\\main.py"// TODO: this code should be depend on your python program path
     val directory = "D:\\codings\\python\\test"// TODO: this code should be depend on you python project dir 
-    val activateScript = ".\\venv\\Scripts\\activate.bat"// TODO: the venv name should be depend on your python venv name 
+    val activateScript =
+        ".\\venv\\Scripts\\activate.bat"// TODO: the venv name should be depend on your python venv name
     val runPyCmd = "python $pythonScriptPath"
     val activateVenvCmd = "cd $directory && $activateScript"
 
     val processBuilder = ProcessBuilder("cmd.exe", "/c", "$activateVenvCmd && $runPyCmd")
 
-    suspend fun runCameraProgram(){
+    suspend fun runCameraProgram() {
         withContext(context = Dispatchers.IO) {
             openingPyScript = true
 
@@ -68,6 +68,10 @@ fun App() {
             openingPyScript = false
         }
     }
+    DisposableEffect(Unit) {
+        socketHelper.listen { println(it) }
+        onDispose { socketHelper.close() }
+    }
 
     MaterialTheme {
         Surface(color = Color(0xFFf6f6f6)) {
@@ -94,17 +98,20 @@ fun App() {
                         onClick = {
 //                        val venvProcess = processBuilderVenv.start()
 //                        venvProcess.waitFor()
-                        CoroutineScope(Dispatchers.IO).launch {
-                            runCameraProgram()
-                        }
+                            CoroutineScope(Dispatchers.IO).launch {
+                                runCameraProgram()
+                            }
 
-                    }) {
+                        }) {
                         Row(
                             horizontalArrangement = Arrangement.spacedBy(12.dp),
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Text(if(openingPyScript) "Camera is Open" else "Open Camera")
-                            if(openingPyScript) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                            Text(if (openingPyScript) "Camera is Open" else "Open Camera")
+                            if (openingPyScript) CircularProgressIndicator(
+                                color = Color.White,
+                                modifier = Modifier.size(24.dp)
+                            )
                         }
                     }
                 }
