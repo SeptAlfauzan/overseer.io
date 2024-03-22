@@ -9,6 +9,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -16,11 +17,57 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import core.widgets.CardInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import java.io.BufferedReader
+import java.io.File
+import java.io.InputStreamReader
 
 @Composable
 @Preview
 fun App() {
-    var text by remember { mutableStateOf("Hello, World!") }
+    var openingPyScript by remember { mutableStateOf(false) }
+
+    val pythonScriptPath = "D:\\codings\\python\\test\\main.py"// TODO: this code should be depend on your python program path 
+    val directory = "D:\\codings\\python\\test"// TODO: this code should be depend on you python project dir 
+    val activateScript = ".\\venv\\Scripts\\activate.bat"// TODO: the venv name should be depend on your python venv name 
+    val runPyCmd = "python $pythonScriptPath"
+    val activateVenvCmd = "cd $directory && $activateScript"
+
+    val processBuilder = ProcessBuilder("cmd.exe", "/c", "$activateVenvCmd && $runPyCmd")
+
+    suspend fun runCameraProgram(){
+        withContext(context = Dispatchers.IO) {
+            openingPyScript = true
+
+            val process = processBuilder.start()
+            val inputStream = BufferedReader(InputStreamReader(process.inputStream))
+            val errorStream = BufferedReader(InputStreamReader(process.errorStream))
+
+            // Read the output
+            println("Output Log:")
+            var line: String? = inputStream.readLine()
+            while (line != null) {
+                println(line)
+                line = inputStream.readLine()
+            }
+
+            // Read the error
+            println("Error:")
+            line = errorStream.readLine()
+            while (line != null) {
+                println(line)
+                line = errorStream.readLine()
+            }
+
+            // Wait for the process to finish
+            val exitCode = process.waitFor()
+            println("Python script exited with code: $exitCode")
+            openingPyScript = false
+        }
+    }
 
     MaterialTheme {
         Surface(color = Color(0xFFf6f6f6)) {
@@ -42,10 +89,23 @@ fun App() {
                         CardInfo(label = "On-Phone", value = 10, icon = Icons.Default.Phone)
                         CardInfo(label = "Sleep", value = 10, icon = Icons.Default.Info)
                     }
-                    Button(onClick = {
-                        text = "Hello, Desktop!"
+                    Button(
+                        enabled = !openingPyScript,
+                        onClick = {
+//                        val venvProcess = processBuilderVenv.start()
+//                        venvProcess.waitFor()
+                        CoroutineScope(Dispatchers.IO).launch {
+                            runCameraProgram()
+                        }
+
                     }) {
-                        Text(text)
+                        Row(
+                            horizontalArrangement = Arrangement.spacedBy(12.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(if(openingPyScript) "Camera is Open" else "Open Camera")
+                            if(openingPyScript) CircularProgressIndicator(color = Color.White, modifier = Modifier.size(24.dp))
+                        }
                     }
                 }
             }
