@@ -1,6 +1,5 @@
 import org.jetbrains.compose.compose
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("multiplatform")
@@ -28,6 +27,9 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.currentOs)
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.6.0")
+                implementation("org.bytedeco:javacv:1.5.7")
+                implementation("org.bytedeco:opencv-platform:4.5.5-1.5.7")
+                implementation("com.github.sarxos:webcam-capture:0.3.12")
             }
         }
         val jvmTest by getting

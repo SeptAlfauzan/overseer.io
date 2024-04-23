@@ -12,8 +12,12 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import core.domain.entities.Camera
+import core.utils.CameraHelper
 import core.utils.SocketHelper
-import core.widgets.CardInfo
+import core.ui.widgets.CardInfo
+import core.ui.widgets.DropDown
+import core.ui.widgets.DropDownItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -21,16 +25,18 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import java.net.ServerSocket
+import java.util.*
 import java.util.logging.SocketHandler
 
 @Composable
 @Preview
 fun App() {
+    var cameras: MutableList<Camera> by mutableStateOf(mutableListOf())
     var openingPyScript by remember { mutableStateOf(false) }
-    val socketHelper = SocketHelper(12345)
+    val socketHelper = SocketHelper(5001)
     val pythonScriptPath =
         "D:\\codings\\python\\test\\main.py"// TODO: this code should be depend on your python program path
-    val directory = "D:\\codings\\python\\test"// TODO: this code should be depend on you python project dir 
+    val directory = "D:\\codings\\python\\test"// TODO: this code should be depend on you python project dir
     val activateScript =
         ".\\venv\\Scripts\\activate.bat"// TODO: the venv name should be depend on your python venv name
     val runPyCmd = "python $pythonScriptPath"
@@ -68,6 +74,13 @@ fun App() {
             openingPyScript = false
         }
     }
+
+    LaunchedEffect(Unit){
+        launch(Dispatchers.IO) {
+            cameras = CameraHelper.getAvailableCameras().toMutableList()
+        }
+    }
+
     DisposableEffect(Unit) {
         socketHelper.listen { println(it) }
         onDispose { socketHelper.close() }
@@ -93,13 +106,19 @@ fun App() {
                         CardInfo(label = "On-Phone", value = 10, icon = Icons.Default.Phone)
                         CardInfo(label = "Sleep", value = 10, icon = Icons.Default.Info)
                     }
+                    DropDown(
+                        dropdownItems =
+                        cameras.map {
+                            DropDownItem<Int>(id = it.camIndex.toString(), label = it.name, value = it.camIndex)
+                        }
+                    )
                     Button(
                         enabled = !openingPyScript,
                         onClick = {
 //                        val venvProcess = processBuilderVenv.start()
 //                        venvProcess.waitFor()
                             CoroutineScope(Dispatchers.IO).launch {
-                                runCameraProgram()
+//                                runCameraProgram()
                             }
 
                         }) {
@@ -119,7 +138,6 @@ fun App() {
         }
     }
 }
-
 fun main() = application {
     Window(onCloseRequest = ::exitApplication) {
         App()

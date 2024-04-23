@@ -1,4 +1,4 @@
-package core.widgets
+package core.ui.widgets
 
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.border
