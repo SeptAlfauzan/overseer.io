@@ -10,11 +10,15 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.input.pointer.PointerIcon
+import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.toSize
+import androidx.compose.ui.zIndex
+import java.awt.Cursor
 import java.util.*
 
 
@@ -22,25 +26,24 @@ import java.util.*
 fun <T> DropDown(dropdownItems: List<DropDownItem<T>>) {
     var mExpanded by remember { mutableStateOf(false) }
     var selectedValue by remember { mutableStateOf(-1) }
-    var mTextFieldSize by remember { mutableStateOf(Size.Zero)}
+    var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
 
     val icon = if (mExpanded)
         Icons.Filled.KeyboardArrowUp
     else
         Icons.Filled.KeyboardArrowDown
 
-    LaunchedEffect(dropdownItems){
+    LaunchedEffect(dropdownItems) {
         if (dropdownItems.isNotEmpty()) selectedValue = 0
     }
 
-    Column(Modifier.padding(20.dp)) {
-
+    Column {
         OutlinedTextField(
             colors = TextFieldDefaults.textFieldColors(
                 disabledTextColor = MaterialTheme.colors.onSurface,
                 backgroundColor = MaterialTheme.colors.surface
             ),
-            value = if(selectedValue == -1) "Please select camera first" else dropdownItems[selectedValue].label,
+            value = if (selectedValue == -1) "Please select camera first" else dropdownItems[selectedValue].label,
             readOnly = true,
             enabled = false,
             onValueChange = { },
@@ -50,10 +53,10 @@ fun <T> DropDown(dropdownItems: List<DropDownItem<T>>) {
                 .onGloballyPositioned { coordinates ->
                     mTextFieldSize = coordinates.size.toSize()
                 },
-            label = {Text("Camera")},
+            label = { Text("Camera") },
             trailingIcon = {
-                Icon(icon,"contentDescription",
-                    Modifier.clickable { mExpanded = !mExpanded })
+                Icon(icon, "contentDescription",
+                    Modifier.pointerHoverIcon(PointerIcon(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR))).clickable { mExpanded = !mExpanded })
             }
         )
 
@@ -61,7 +64,7 @@ fun <T> DropDown(dropdownItems: List<DropDownItem<T>>) {
             expanded = mExpanded,
             onDismissRequest = { mExpanded = false },
             modifier = Modifier.width(
-                with(LocalDensity.current){mTextFieldSize.width.toDp()})
+                with(LocalDensity.current) { mTextFieldSize.width.toDp() })
         ) {
             dropdownItems.forEach { item ->
                 DropdownMenuItem(onClick = {
