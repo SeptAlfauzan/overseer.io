@@ -17,10 +17,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun CardInfo(label: String, value: Int, icon: ImageVector) {
+fun CardInfo(label: String, value: Int, icon: ImageVector, modifier: Modifier = Modifier) {
     Card {
         Row(modifier = Modifier.padding(24.dp)) {
-            Column(modifier = Modifier.width(224.dp)) {
+            Column(modifier = modifier) {
                 Text(
                     label,
                     style = MaterialTheme.typography.body1.copy(fontWeight = FontWeight(700)),

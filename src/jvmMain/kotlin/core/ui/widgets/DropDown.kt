@@ -23,7 +23,7 @@ import java.util.*
 
 
 @Composable
-fun <T> DropDown(dropdownItems: List<DropDownItem<T>>) {
+fun <T> DropDown(dropdownItems: List<DropDownItem<T>>, modifier: Modifier = Modifier) {
     var mExpanded by remember { mutableStateOf(false) }
     var selectedValue by remember { mutableStateOf(-1) }
     var mTextFieldSize by remember { mutableStateOf(Size.Zero) }
@@ -47,8 +47,7 @@ fun <T> DropDown(dropdownItems: List<DropDownItem<T>>) {
             readOnly = true,
             enabled = false,
             onValueChange = { },
-            modifier = Modifier
-                .fillMaxWidth()
+            modifier = modifier
                 .clickable { mExpanded = !mExpanded }
                 .onGloballyPositioned { coordinates ->
                     mTextFieldSize = coordinates.size.toSize()

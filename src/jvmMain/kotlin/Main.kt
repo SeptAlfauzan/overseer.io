@@ -9,9 +9,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Window
+import androidx.compose.ui.window.WindowPosition
 import androidx.compose.ui.window.application
+import androidx.compose.ui.window.rememberWindowState
 import core.domain.entities.Camera
 import core.utils.CameraHelper
 import core.utils.SocketHelper
@@ -75,7 +78,7 @@ fun App() {
         }
     }
 
-    LaunchedEffect(Unit){
+    LaunchedEffect(Unit) {
         launch(Dispatchers.IO) {
             cameras = CameraHelper.getAvailableCameras().toMutableList()
         }
@@ -102,11 +105,12 @@ fun App() {
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        CardInfo(label = "Study", value = 10, icon = Icons.Default.Info)
-                        CardInfo(label = "On-Phone", value = 10, icon = Icons.Default.Phone)
-                        CardInfo(label = "Sleep", value = 10, icon = Icons.Default.Info)
+                        CardInfo(label = "Study", value = 10, icon = Icons.Default.Info, modifier = Modifier.width(120.dp))
+                        CardInfo(label = "On-Phone", value = 10, icon = Icons.Default.Phone, modifier = Modifier.width(120.dp))
+                        CardInfo(label = "Sleep", value = 10, icon = Icons.Default.Info, modifier = Modifier.width(120.dp))
                     }
                     DropDown(
+                        modifier = Modifier.padding(top = 32.dp),
                         dropdownItems =
                         cameras.map {
                             DropDownItem<Int>(id = it.camIndex.toString(), label = it.name, value = it.camIndex)
@@ -138,8 +142,16 @@ fun App() {
         }
     }
 }
+
 fun main() = application {
-    Window(onCloseRequest = ::exitApplication) {
+    val state = rememberWindowState(
+        position = WindowPosition(Alignment.Center), size = DpSize(1024.dp, 720.dp)
+    )
+    Window(
+//        undecorated = true,
+        state = state,
+        onCloseRequest = ::exitApplication
+    ) {
         App()
     }
 }
