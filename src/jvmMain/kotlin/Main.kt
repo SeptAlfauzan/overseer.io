@@ -27,25 +27,27 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.InputStreamReader
-import java.net.ServerSocket
-import java.util.*
-import java.util.logging.SocketHandler
+import kotlin.io.path.Path
+import kotlin.io.path.absolutePathString
 
 @Composable
 @Preview
 fun App() {
     var cameras: MutableList<Camera> by mutableStateOf(mutableListOf())
     var openingPyScript by remember { mutableStateOf(false) }
-    val socketHelper = SocketHelper(5001)
+    val socketHelper = SocketHelper(12345)
+
+    val currentDir = System.getProperty("user.dir")
     val pythonScriptPath =
-        "D:\\codings\\python\\test\\main.py"// TODO: this code should be depend on your python program path
+        "$currentDir\\py_client\\overseer.py"// TODO: this code should be depend on your python program path
+    val absPath = Path(pythonScriptPath).absolutePathString()
     val directory = "D:\\codings\\python\\test"// TODO: this code should be depend on you python project dir
     val activateScript =
         ".\\venv\\Scripts\\activate.bat"// TODO: the venv name should be depend on your python venv name
-    val runPyCmd = "python $pythonScriptPath"
-    val activateVenvCmd = "cd $directory && $activateScript"
+    val runCommand = ".\\dist\\main.exe"
+    val changeDir = "cd $absPath"
 
-    val processBuilder = ProcessBuilder("cmd.exe", "/c", "$activateVenvCmd && $runPyCmd")
+    val processBuilder = ProcessBuilder("cmd.exe", "/c", "$changeDir && $runCommand")
 
     suspend fun runCameraProgram() {
         withContext(context = Dispatchers.IO) {
@@ -119,10 +121,8 @@ fun App() {
                     Button(
                         enabled = !openingPyScript,
                         onClick = {
-//                        val venvProcess = processBuilderVenv.start()
-//                        venvProcess.waitFor()
                             CoroutineScope(Dispatchers.IO).launch {
-//                                runCameraProgram()
+                                runCameraProgram()
                             }
 
                         }) {
