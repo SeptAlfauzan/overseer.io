@@ -1,5 +1,6 @@
 import androidx.compose.desktop.ui.tooling.preview.Preview
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.window.Window
 import androidx.compose.material.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -7,6 +8,7 @@ import androidx.compose.material.icons.filled.Phone
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.awt.ComposeWindow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.DpSize
@@ -25,6 +27,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import java.awt.TextField
+import java.awt.Window
 import java.io.BufferedReader
 import java.io.InputStreamReader
 import kotlin.io.path.Path
@@ -35,15 +39,17 @@ import kotlin.io.path.absolutePathString
 fun App() {
     var cameras: MutableList<Camera> by mutableStateOf(mutableListOf())
     var openingPyScript by remember { mutableStateOf(false) }
-    val socketHelper = SocketHelper(12345)
+    val socketHelper = SocketHelper(8080)
+
+    var showFilePicker by remember { mutableStateOf(false) }
+    var imageUrl by remember { mutableStateOf("") }
+
+    val fileType = listOf("jpg", "png")
 
     val currentDir = System.getProperty("user.dir")
     val pythonScriptPath =
         "$currentDir\\py_client\\overseer.py"// TODO: this code should be depend on your python program path
     val absPath = Path(pythonScriptPath).absolutePathString()
-    val directory = "D:\\codings\\python\\test"// TODO: this code should be depend on you python project dir
-    val activateScript =
-        ".\\venv\\Scripts\\activate.bat"// TODO: the venv name should be depend on your python venv name
     val runCommand = ".\\dist\\main.exe"
     val changeDir = "cd $absPath"
 
@@ -107,34 +113,75 @@ fun App() {
                         modifier = Modifier.padding(bottom = 16.dp)
                     )
                     Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
-                        CardInfo(label = "Study", value = 10, icon = Icons.Default.Info, modifier = Modifier.width(120.dp))
-                        CardInfo(label = "On-Phone", value = 10, icon = Icons.Default.Phone, modifier = Modifier.width(120.dp))
-                        CardInfo(label = "Sleep", value = 10, icon = Icons.Default.Info, modifier = Modifier.width(120.dp))
+                        CardInfo(
+                            label = "Study",
+                            value = 0,
+                            icon = Icons.Default.Info,
+                            modifier = Modifier.width(120.dp)
+                        )
+                        CardInfo(
+                            label = "On-Phone",
+                            value = 0,
+                            icon = Icons.Default.Phone,
+                            modifier = Modifier.width(120.dp)
+                        )
+                        CardInfo(
+                            label = "Sleep",
+                            value = 0,
+                            icon = Icons.Default.Info,
+                            modifier = Modifier.width(120.dp)
+                        )
                     }
-                    DropDown(
-                        modifier = Modifier.padding(top = 32.dp),
-                        dropdownItems =
-                        cameras.map {
-                            DropDownItem<Int>(id = it.camIndex.toString(), label = it.name, value = it.camIndex)
-                        }
-                    )
-                    Button(
-                        enabled = !openingPyScript,
-                        onClick = {
-                            CoroutineScope(Dispatchers.IO).launch {
-                                runCameraProgram()
-                            }
-
-                        }) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                    Row {
+                        Column(
+                            modifier = Modifier.padding(top = 32.dp),
                         ) {
-                            Text(if (openingPyScript) "Camera is Open" else "Open Camera")
-                            if (openingPyScript) CircularProgressIndicator(
-                                color = Color.White,
-                                modifier = Modifier.size(24.dp)
+                            DropDown(
+                                dropdownItems =
+                                cameras.map {
+                                    DropDownItem<Int>(id = it.camIndex.toString(), label = it.name, value = it.camIndex)
+                                }
                             )
+                            Button(
+                                enabled = !openingPyScript,
+                                onClick = {
+                                    CoroutineScope(Dispatchers.IO).launch {
+                                        runCameraProgram()
+                                    }
+
+                                }) {
+                                Row(
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Text(if (openingPyScript) "Camera is Open" else "Open Camera")
+                                    if (openingPyScript) CircularProgressIndicator(
+                                        color = Color.White,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                        }
+                        Column(
+                            modifier = Modifier.padding(top = 32.dp),
+                        ) {
+                            Row {
+
+                                TextField(value = imageUrl, onValueChange = { imageUrl = it })
+                                Button(onClick = {
+                                    val fileDialog = java.awt.FileDialog(ComposeWindow())
+                                    fileDialog.isVisible = true
+                                    imageUrl = fileDialog.files[0].path
+                                }) {
+                                    Text("Pilih gambar")
+                                }
+                            }
+                            Button(
+                                enabled = imageUrl.isNotEmpty(),
+                                onClick = {
+                                }) {
+                                Text("Deteksi gambar")
+                            }
                         }
                     }
                 }

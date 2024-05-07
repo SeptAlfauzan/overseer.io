@@ -30,6 +30,7 @@ kotlin {
                 implementation("org.bytedeco:javacv:1.5.7")
                 implementation("org.bytedeco:opencv-platform:4.5.5-1.5.7")
                 implementation("com.github.sarxos:webcam-capture:0.3.12")
+//                implementation("com.darkrockstudios:mpfilepicker:3.1.0")
             }
         }
         val jvmTest by getting
